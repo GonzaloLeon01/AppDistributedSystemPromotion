@@ -1,0 +1,16 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:latest
+    hostname: mosquitto
+    container_name: "mosquitto"
+    restart: unless-stopped
+    expose:
+      - "1885"
+    ports:
+      - "1885:1885"
+    volumes:
+      - ./mosquitto/data:/mosquitto/data
+      - ./mosquitto/log:/mosquitto/log
+      - ./mosquitto/config:/mosquitto/config
+    environment:
+      - MOSQUITTO_CONFIG=/mosquitto/config/mosquitto.conf
