@@ -10,45 +10,45 @@ export default class AnimalLocationPage {
 
   async loadAnimalLocations() {
     try {
-      const data = await AnimalsAPIHelper.getAnimalsPosition();
-      /* Mock data para la respuesta de animals/position
+      //const data = await AnimalsAPIHelper.getAnimalsPosition();
+      // Mock data para la respuesta de animals/position
       const data = [
         {
           id: "pos-001",
-          lat: -34.603722,
-          long: -58.381592,
-          description: "Establo Principal",
-          animals: ["Bovino-01", "Bovino-02", "Bovino-03"],
+          lat: -38.0023, // Centro de Mar del Plata
+          long: -57.5579,
+          description: "Centro de Mar del Plata",
+          animals: ["Bovino-01", "Bovino-02"],
         },
         {
           id: "pos-002",
-          lat: -34.610768,
-          long: -58.382452,
-          description: "Campo de Pastoreo Norte",
-          animals: ["Bovino-04", "Bovino-05"],
+          lat: -38.0255, // Playa Grande
+          long: -57.5583,
+          description: "Playa Grande",
+          animals: ["Bovino-03", "Bovino-04"],
         },
         {
           id: "pos-003",
-          lat: -34.608301,
-          long: -58.387305,
-          description: "Río Este",
-          animals: ["Bovino-06", "Bovino-07"],
+          lat: -38.0155, // Parque Camet
+          long: -57.515,
+          description: "Parque Camet",
+          animals: ["Bovino-05", "Bovino-06"],
         },
         {
           id: "pos-004",
-          lat: -34.60405,
-          long: -58.3881,
-          description: "Descanso Sur",
-          animals: ["Bovino-08"],
+          lat: -38.0085, // Estadio José María Minella
+          long: -57.5525,
+          description: "Estadio José María Minella",
+          animals: ["Bovino-07"],
         },
         {
           id: "pos-005",
-          lat: -34.6075,
-          long: -58.389,
-          description: "Corral de Animales Jóvenes",
-          animals: ["Bovino-09", "Bovino-10"],
+          lat: -37.9867, // Reserva Natural Otamendi
+          long: -57.535,
+          description: "Reserva Natural Otamendi",
+          animals: ["Bovino-08", "Bovino-09"],
         },
-      ]; */
+      ];
 
       this.animalLocations = data;
     } catch (error) {
@@ -61,14 +61,45 @@ export default class AnimalLocationPage {
 
   render() {
     const locationHtml = `
+      <h2 class="animal-location-title">Mapa de Animales</h2>
+      <div id="map" style="height: 400px; width: 100%;"></div> <!-- Div del mapa -->
       <h2 class="animal-location-title">Ubicaciones de Animales</h2>
-      <div class="animal-location-list">
-        ${this.animalLocations
-          .map((location) => this.renderLocationItem(location))
-          .join("")}
-      </div>
+      <div class="animal-location-list" id="animal-location-list"></div> <!-- Contenedor para la lista -->
     `;
-    this.container.innerHTML = locationHtml;
+    this.container.innerHTML = locationHtml; // Agrega el mapa y la lista al contenedor
+    this.initMap(); // Inicializa el mapa después de agregarlo al DOM
+    this.renderLocations(); // Renderiza la lista de ubicaciones
+  }
+
+  initMap() {
+    // Inicializa el mapa en la ubicación de Mar del Plata
+    const map = L.map("map").setView([-38.00120839, -57.5812635], 12);
+    // Añade el tile layer de OpenStreetMap
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(map);
+
+    // Agrega los marcadores de cada checkpoint con la información de los animales
+    this.animalLocations.forEach((location) => {
+      const marker = L.marker([location.lat, location.long]).addTo(map);
+      marker.bindPopup(`
+        <h3>${location.description}</h3>
+        <p><strong>Checkpoint ID:</strong> ${location.id}</p>
+        <p><strong>Animales asociados:</strong> ${location.animals.join(
+          ", "
+        )}</p>
+      `);
+    });
+  }
+
+  renderLocations() {
+    const locationHtml = this.animalLocations
+      .map((location) => this.renderLocationItem(location))
+      .join("");
+
+    const locationList = document.getElementById("animal-location-list");
+    locationList.innerHTML = locationHtml; // Agregar la lista de ubicaciones al contenedor correspondiente
   }
 
   renderLocationItem(location) {
