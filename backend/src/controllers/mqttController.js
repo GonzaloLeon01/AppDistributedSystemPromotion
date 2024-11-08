@@ -11,80 +11,116 @@ const client = mqtt.connect(options);
 const animalTracker = new Map(); // Almacena la ultima ubicacion de cada animal
 const checkpointData = new Map(); // Almacena los datos de cada checkpoint
 
-const topic = "checkpoints";
+const topico_checkpoints = "checkpoint";
 let isConnected = false;
 
 client.on("connect", () => {
   console.log("Conectado al broker MQTT");
   isConnected = true;
 
-  client.subscribe(topic, (err) => {
+  client.subscribe(topico_checkpoints, (err) => {
     if (!err) {
-      console.log(`Suscrito al topic: ${topic}`);
+      console.log(`Suscrito al topic: ${topico_checkpoints}`);
     } else {
       console.error("Error al suscribirse:", err);
     }
   });
 });
+// Estructura para almacenar fragmentos pendientes
+const fragmentBuffer = new Map();
 
 client.on("message", (topic, message) => {
-  try {
-    const data = JSON.parse(message.toString());
+  if (topic === topico_checkpoints) {
+    try {
+      const data = JSON.parse(message.toString());
 
-    if (!data.checkpointID || !Array.isArray(data.animals)) {
-      throw new Error("Formato de mensaje inválido");
-    }
+      // Verifica si el mensaje contiene fragmentos
+      const { packageNum, totalPackages, deviceMac, devices } = data;
 
-    console.log("Checkpoint ID:", data.checkpointID);
-    console.log("Animales detectados:", data.animals.length);
-
-    if (!checkpointData.has(data.checkpointID)) {
-      checkpointData.set(data.checkpointID, {
-        animals: new Map(),
-      });
-    }
-
-    data.animals.forEach((animal) => {
-      if (!animal.id || typeof animal.rssi !== "number") {
-        console.warn("Animal con formato invalido:", animal);
-        return;
-      }
-
-      const tempSignal = {
-        checkpointId: data.checkpointID,
-        rssi: animal.rssi,
-      };
-
-      const currentAnimalData = animalTracker.get(animal.id);
-      const currentCheckpoint = currentAnimalData?.currentCheckpoint;
-
-      let bestCheckpoint = findBestCheckpoint(animal.id, tempSignal);
-
-      if (bestCheckpoint === data.checkpointID) {
-        if (currentCheckpoint && checkpointData.has(currentCheckpoint)) {
-          checkpointData.get(currentCheckpoint).animals.delete(animal.id);
+      if (packageNum !== undefined && totalPackages !== undefined) {
+        if (!fragmentBuffer.has(deviceMac)) {
+          //Si no existe un registro de esa MAC
+          fragmentBuffer.set(deviceMac, []);
+        } else if (packageNum == 1) {
+          fragmentBuffer.set(deviceMac, []); //Si existe un registro(incompleto) de la mac pero llego un paquete nuevo.
         }
 
-        checkpointData.get(data.checkpointID).animals.set(animal.id, {
-          rssi: animal.rssi,
-        });
+        // Almacena el fragmento en la posición correcta
+        fragmentBuffer.get(deviceMac)[packageNum] = devices;
 
-        animalTracker.set(animal.id, {
-          currentCheckpoint: bestCheckpoint,
-          signalStrength: animal.rssi,
-          lastUpdate: new Date(),
-        });
+        // Comprueba si todos los fragmentos han sido recibidos
+        /*const receivedFragments = fragmentBuffer
+          .get(deviceMac)
+          .filter(Boolean).length;--- Lo q hizo chatgpt pero no tiene mucho sentido si
+           los paquetes se envian secuencialmente, ademas capaz alguno se pierde y queda
+           el mapa con datos viejos y se hace un desaste mezclando cosas viejas y nuevas*/
+        if (packageNum === totalPackages) {
+          // Combina todos los fragmentos
+          const fullDevices = fragmentBuffer.get(deviceMac).flat();
+          fragmentBuffer.delete(deviceMac);
 
-        console.log(`Animal ID: ${animal.id}`);
-        console.log(`Checkpoint anterior: ${currentCheckpoint}`);
-        console.log(`Nuevo mejor checkpoint: ${bestCheckpoint}`);
-        console.log(`RSSI: ${animal.rssi}dBm`);
+          // Procesa el mensaje completo como de costumbre
+          processMessage(deviceMac, fullDevices);
+        }
+      } else {
+        // Procesa el mensaje si no está fragmentado
+        processMessage(deviceMac, devices);
       }
-    });
-  } catch (error) {
-    console.error("Error al procesar el mensaje:", error.message);
+    } catch (error) {
+      console.error("Error al procesar el mensaje:", error.message);
+    }
   }
 });
+
+// Función para procesar el mensaje completo
+function processMessage(deviceMac, devices) {
+  console.log("Checkpoint ID:", deviceMac);
+  console.log("Animales detectados:", devices.length);
+
+  if (!checkpointData.has(deviceMac)) {
+    checkpointData.set(deviceMac, {
+      animals: new Map(),
+    });
+  }
+
+  devices.forEach((animal) => {
+    if (!animal.id || typeof animal.rssi !== "number") {
+      console.warn("Animal con formato invalido:", animal);
+      return;
+    }
+
+    const tempSignal = {
+      checkpointId: deviceMac,
+      rssi: animal.rssi,
+    };
+
+    const currentAnimalData = animalTracker.get(animal.id);
+    const currentCheckpoint = currentAnimalData?.currentCheckpoint;
+
+    let bestCheckpoint = findBestCheckpoint(animal.id, tempSignal);
+
+    if (bestCheckpoint === deviceMac) {
+      if (currentCheckpoint && checkpointData.has(currentCheckpoint)) {
+        checkpointData.get(currentCheckpoint).animals.delete(animal.id);
+      }
+
+      checkpointData.get(deviceMac).animals.set(animal.id, {
+        rssi: animal.rssi,
+      });
+
+      animalTracker.set(animal.id, {
+        currentCheckpoint: bestCheckpoint,
+        signalStrength: animal.rssi,
+        lastUpdate: new Date(),
+      });
+
+      console.log(`Animal ID: ${animal.id}`);
+      console.log(`Checkpoint anterior: ${currentCheckpoint}`);
+      console.log(`Nuevo mejor checkpoint: ${bestCheckpoint}`);
+      console.log(`RSSI: ${animal.rssi}dBm`);
+    }
+  });
+}
 
 function findBestCheckpoint(animalId, tempSignal) {
   let bestRSSI = -Infinity;
@@ -145,8 +181,15 @@ function getAnimalsInAllCheckpoint() {
 
 function getAllCheckpoints(res) {
   try {
+    const allKeys = Array.from(checkpointData.values()).flatMap((value) => {
+      if (value.animals instanceof Map) {
+        return Array.from(value.animals.keys());
+      }
+      return [];
+    });
+
     res.writeHead(200, { "Content-Type": "application/json" });
-    res.end(JSON.stringify(Array.from(checkpointData.keys())));
+    res.end(JSON.stringify(allKeys));
   } catch (error) {
     res.writeHead(400, { "Content-Type": "application/json" });
     res.end(JSON.stringify({ error: "Error al procesar el JSON" }));

@@ -70,7 +70,7 @@ export default class CheckpointManagementPage {
     try {
       await CheckpointsAPIHelper.addCheckpoint({ id, lat, long, description });
       //this.checkpoints.push({ lat, long, description });
-      //alert("Punto de control agregado exitosamente");
+      alert("Punto de control agregado exitosamente");
       this.loadCheckpoints(); // esto si va
       /*       this.render(); // esto no va
       this.addListeners(); // esto no va, es lo que hace que tire error */
@@ -99,7 +99,7 @@ export default class CheckpointManagementPage {
         this.checkpoints[index].description = newDescription;
       }
       console.log(index); */
-      //alert("Punto de control actualizado exitosamente");
+      alert("Punto de control actualizado exitosamente");
       this.loadCheckpoints(); // Recarga los checkpoints
       /*       this.render();
       this.addListeners(); */
@@ -112,11 +112,12 @@ export default class CheckpointManagementPage {
   async handleDeleteCheckpoint(id) {
     if (
       confirm("¿Estás seguro de que deseas eliminar este punto de control?")
+      
     ) {
       try {
         console.log(id);
         await CheckpointsAPIHelper.deleteCheckpoint(id);
-        //alert("Punto de control eliminado exitosamente");
+        alert("Punto de control eliminado exitosamente");
         this.loadCheckpoints(); // Recarga los checkpoints
         /*         this.checkpoints = this.checkpoints.filter((chek) => chek.id != id);
         alert("Punto de control eliminado con éxito");
@@ -155,8 +156,8 @@ export default class CheckpointManagementPage {
       <div class="checkpoint-list">
         <h3 class="checkpoint-list-title"> Lista de Puntos de Control </h3>
         ${this.checkpoints
-          .map((checkpoint) => new CheckpointItem(checkpoint).render())
-          .join("")}
+        .map((checkpoint) => new CheckpointItem(checkpoint).render())
+        .join("")}
       </div>
     `;
     this.container.innerHTML = checkpointsHtml;

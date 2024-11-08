@@ -36,7 +36,9 @@ export default class AnimalsAPIHelper {
 
   // API/availableDevices/
   static async getAvailableDevices() {
-    const response = await axios.get("/API/availableDevices");
-    return response.data.devices; // devuelve la lista de dispositivos
+    const response = await axios.get(`http://localhost:4000/API/availableDevices`);
+    console.log(response.data);
+    
+    return response.data; // devuelve la lista de dispositivos
   }
 }

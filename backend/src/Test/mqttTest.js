@@ -2,18 +2,18 @@
 
 const mqtt = require('mqtt');
 
-const brokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://localhost:1885';
+const brokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://localhost:1883';
 const topic = 'checkpoints';
 const options = {
     host:'localhost',
-    port: 1885,
+    port: 1883,
     username: 'admin',
     password: 'admin'
   };
 const client = mqtt.connect(options);
 
 const startMockedMqttPublishers = () => {
-  setInterval(sendRandomData, 5000);
+  setInterval(sendRandomData, 30000);
 }
 
 function generateRandomCheckpoint() {
@@ -76,4 +76,5 @@ client.on('error', function (error) {
 });
 
 //import { startMockedMqttPublishers } from './test/Mock.js';
+sendRandomData();
 startMockedMqttPublishers();

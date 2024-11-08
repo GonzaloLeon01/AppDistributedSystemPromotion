@@ -63,8 +63,9 @@ const server = http.createServer(async (req, res) => {
     const parsedUrl = url.parse(req.url, true);
     const path = parsedUrl.pathname;
     const method = req.method;
-    console.log(`lo intenta al menos : ${parsedUrl} ${path} ${method}`);
+    console.log(`Datos: ${parsedUrl} ${path} ${method}`);
     // Rutas públicas
+
     if (method === "GET" && path === "/") {
       res.writeHead(200, { "Content-Type": "text/plain" });
       res.end("Backend!\n");
@@ -81,9 +82,9 @@ const server = http.createServer(async (req, res) => {
       return;
     }
 
-    /*         if (!verifyToken(req, res)) {
-            return;
-        } */
+    if (!verifyToken(req, res)) {
+      return;
+    }
 
     // Rutas protegidas
     switch (true) {
@@ -95,7 +96,6 @@ const server = http.createServer(async (req, res) => {
         break;
       case path.match(/^\/API\/animals\/[^/]+$/) && method === "DELETE":
         const animalId = path.split("/").pop();
-        console.log(animalId);
         await animalController.deleteAnimal(req, res, animalId);
         break;
       case path.match(/^\/API\/animals\/[^/]+$/) && method === "PATCH":
@@ -114,7 +114,6 @@ const server = http.createServer(async (req, res) => {
         break;
       case path.match(/^\/API\/checkpoints\/[^/]+$/) && method === "PATCH":
         const checkUpdateId = path.split("/").pop();
-        console.log(`aver q pasa : ${checkUpdateId} `);
         await checkpointController.updateCheckpoint(req, res, checkUpdateId);
         break;
       case path === "/API/animals/position" && method === "GET":

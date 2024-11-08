@@ -36,7 +36,7 @@ void setup() {
   client.setServer(mqtt_server, mqtt_port);
   while (!client.connected()) {
     Serial.println("Connecting to MQTT...");
-    if (client.connect("ESP32Client", mqttUser, mqttPassword)) {
+    if (client.connect("ESP32Client", mqttUser, mqttPassword) {
       Serial.println("Connected to MQTT");
     } else {
       Serial.print("Failed with state ");
@@ -56,18 +56,20 @@ void loop() {
   Serial.println("Scanning for BLE devices...");
   BLEScanResults * foundDevices = pBLEScan->start(scanTime, false);
   std::vector<String> devicesList;
-
+  std::vector<String> devicesMACList;
   // Loop through found devices
   for (int i = 0; i < foundDevices->getCount(); i++) {
 
       BLEAdvertisedDevice device = foundDevices->getDevice(i);
-      String deviceString  = "(" + String(device.getAddress().toString().c_str()) + ")";
+      String deviceString  = String(device.getAddress().toString().c_str());
+      String macString= String(device.getRSSI());
       devicesList.push_back(deviceString);
+      devicesMACList.push_back(macString);
     }
   
   pBLEScan->clearResults(); // Clear scan results
   // Publish the list of devices to the MQTT topic
-  enviarPaquetes(client,devicesList);
+  enviarPaquetes(client,devicesList,devicesMACList);
 
   // Wait 10 seconds before next scan
 
@@ -75,21 +77,26 @@ void loop() {
 }
 
 
-void enviarPaquetes(PubSubClient& client,const std::vector<String>& devicesList){
+void enviarPaquetes(PubSubClient& client,const std::vector<String>& devicesList,const std::vector<String>& devicesMACList){
   int totalDevices = devicesList.size();
   int batchSize = 3; // Send in batches of 10 devices
   int numBatches = (totalDevices + batchSize - 1) / batchSize;
   int iDevices=0;
+
   for (int i=0; i<numBatches; i++){ //Ciclo para cada paquete
     StaticJsonDocument<512> doc;
     String jsonString;
 
-    doc["deviceMac"]=WiFi.macAddress();
     doc["packageNum"]=i+1;
+    doc["totalPackages"]=numBatches;
+    doc["deviceMac"]=WiFi.macAddress();
 
     JsonArray devices = doc["devices"].to<JsonArray>();
     while (iDevices<batchSize*(i+1) && iDevices<totalDevices){ //Pone los dispositivos en el JSON
-      devices.add(devicesList[iDevices]);
+      JsonObject deviceObj = devices.createNestedObject();
+      deviceObj["mac"]=devicesList[iDevices];
+      deviceObj["rssi"]=devicesMACList[iDevices];
+      //devices.add(deviceObj);
       iDevices++;
     }
     

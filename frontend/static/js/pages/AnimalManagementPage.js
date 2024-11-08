@@ -47,14 +47,22 @@ export default class AnimalManagementPage {
       ]; */
       this.animals = data;
       // Cargar dispositivos disponibles
-      //this.availableDevices = await AnimalsAPIHelper.getAvailableDevices();
-      console.log(this.availableDevices);
+      this.availableDevices = await AnimalsAPIHelper.getAvailableDevices();
+      if (this.availableDevices != null)
+        this.availableDevices = this.availableDevices.filter(
+          (key) => !data.some((item) => item.id === key)
+        );
+      //faltaria filtrar por checkpoint valido :P
     } catch (error) {
       console.error("Error loading animals:", error);
       this.animals = [];
       this.availableDevices = [];
     } finally {
-      this.availableDevices = ["pepe"];
+      if (this.availableDevices === null)
+        this.availableDevices = [
+          "NO hay dispositivos esto es pa q no crashee 💀💀",
+        ];
+      console.log("availableDevices=", this.availableDevices);
       this.render();
       this.addListeners();
     }
@@ -70,7 +78,7 @@ export default class AnimalManagementPage {
     try {
       await AnimalsAPIHelper.addAnimal({ id, name, description });
       //this.animals.push({ id, name, description });
-      //alert("Animal añadido con éxito");
+      alert("Animal añadido con éxito");
       this.loadAnimals(); // esto si va
       //this.render(); // esto no va
       //this.addListeners(); // esto no va, es lo que hace que tire error
@@ -88,7 +96,7 @@ export default class AnimalManagementPage {
       try {
         console.log(id);
         await AnimalsAPIHelper.updateAnimal(id, { id, name, description });
-        //alert("Animal actualizado con éxito");
+        alert("Animal actualizado con éxito");
         this.loadAnimals();
 
         /* const index = this.animals.findIndex((animal) => animal.id === id);
@@ -112,7 +120,7 @@ export default class AnimalManagementPage {
         console.log(id);
         await AnimalsAPIHelper.deleteAnimal(id);
         /* this.animals = this.animals.filter((animal) => animal.id != id); */
-        //alert("Animal eliminado con éxito");
+        alert("Animal eliminado con éxito");
         this.loadAnimals();
 
         /*this.render();
