@@ -1,7 +1,7 @@
 const mqtt = require("mqtt");
 const options = {
   host: "localhost",
-  port: 1883,
+  port: 1885,
   username: "api",
   password: "api",
 };
@@ -35,36 +35,36 @@ client.on("message", (topic, message) => {
       const data = JSON.parse(message.toString());
 
       // Verifica si el mensaje contiene fragmentos
-      const { packageNum, totalPackages, deviceMac, devices } = data;
-
+      const { packageNum, totalPackages, checkpointID, animals } = data;
+      checkpointID, animals;
       if (packageNum !== undefined && totalPackages !== undefined) {
-        if (!fragmentBuffer.has(deviceMac)) {
+        if (!fragmentBuffer.has(checkpointID)) {
           //Si no existe un registro de esa MAC
-          fragmentBuffer.set(deviceMac, []);
+          fragmentBuffer.set(checkpointID, []);
         } else if (packageNum == 1) {
-          fragmentBuffer.set(deviceMac, []); //Si existe un registro(incompleto) de la mac pero llego un paquete nuevo.
+          fragmentBuffer.set(checkpointID, []); //Si existe un registro(incompleto) de la mac pero llego un paquete nuevo.
         }
 
         // Almacena el fragmento en la posición correcta
-        fragmentBuffer.get(deviceMac)[packageNum] = devices;
+        fragmentBuffer.get(checkpointID)[packageNum] = animals;
 
         // Comprueba si todos los fragmentos han sido recibidos
         /*const receivedFragments = fragmentBuffer
-          .get(deviceMac)
+          .get(checkpointID)
           .filter(Boolean).length;--- Lo q hizo chatgpt pero no tiene mucho sentido si
            los paquetes se envian secuencialmente, ademas capaz alguno se pierde y queda
            el mapa con datos viejos y se hace un desaste mezclando cosas viejas y nuevas*/
         if (packageNum === totalPackages) {
           // Combina todos los fragmentos
-          const fullDevices = fragmentBuffer.get(deviceMac).flat();
-          fragmentBuffer.delete(deviceMac);
+          const fullAnimals = fragmentBuffer.get(checkpointID).flat();
+          fragmentBuffer.delete(checkpointID);
 
           // Procesa el mensaje completo como de costumbre
-          processMessage(deviceMac, fullDevices);
+          processMessage(checkpointID, fullAnimals);
         }
       } else {
         // Procesa el mensaje si no está fragmentado
-        processMessage(deviceMac, devices);
+        processMessage(checkpointID, animals);
       }
     } catch (error) {
       console.error("Error al procesar el mensaje:", error.message);
@@ -73,24 +73,24 @@ client.on("message", (topic, message) => {
 });
 
 // Función para procesar el mensaje completo
-function processMessage(deviceMac, devices) {
-  console.log("Checkpoint ID:", deviceMac);
-  console.log("Animales detectados:", devices.length);
+function processMessage(checkpointID, animals) {
+  console.log("Checkpoint ID:", checkpointID);
+  console.log("Animales detectados:", animals.length);
 
-  if (!checkpointData.has(deviceMac)) {
-    checkpointData.set(deviceMac, {
+  if (!checkpointData.has(checkpointID)) {
+    checkpointData.set(checkpointID, {
       animals: new Map(),
     });
   }
 
-  devices.forEach((animal) => {
+  animals.forEach((animal) => {
     if (!animal.id || typeof animal.rssi !== "number") {
       console.warn("Animal con formato invalido:", animal);
       return;
     }
 
     const tempSignal = {
-      checkpointId: deviceMac,
+      checkpointId: checkpointID,
       rssi: animal.rssi,
     };
 
@@ -99,12 +99,12 @@ function processMessage(deviceMac, devices) {
 
     let bestCheckpoint = findBestCheckpoint(animal.id, tempSignal);
 
-    if (bestCheckpoint === deviceMac) {
+    if (bestCheckpoint === checkpointID) {
       if (currentCheckpoint && checkpointData.has(currentCheckpoint)) {
         checkpointData.get(currentCheckpoint).animals.delete(animal.id);
       }
 
-      checkpointData.get(deviceMac).animals.set(animal.id, {
+      checkpointData.get(checkpointID).animals.set(animal.id, {
         rssi: animal.rssi,
       });
 

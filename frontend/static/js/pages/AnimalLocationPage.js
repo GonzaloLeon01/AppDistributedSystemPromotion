@@ -11,42 +11,70 @@ export default class AnimalLocationPage {
   async loadAnimalLocations() {
     try {
       //const data = await AnimalsAPIHelper.getAnimalsPosition();
+      //console.log(data);
+
       // Mock data para la respuesta de animals/position
       const data = [
         {
           id: "pos-001",
-          lat: -38.0023, // Centro de Mar del Plata
-          long: -57.5579,
-          description: "Centro de Mar del Plata",
-          animals: ["Bovino-01", "Bovino-02"],
+          lat: -34.603722,
+          long: -58.381592,
+          description: "Establo Principal",
+          animals: [
+            {
+              id: "11:5e:e7:84:c4:f6", // ID único del animal
+              name: "Roberto Carlos", // Nombre del animal
+              description: "No es una vaca👀", // Descripción del animal
+            },
+            // Más objetos de animales con la misma estructura pueden seguir aquí
+          ],
         },
         {
           id: "pos-002",
-          lat: -38.0255, // Playa Grande
-          long: -57.5583,
-          description: "Playa Grande",
-          animals: ["Bovino-03", "Bovino-04"],
+          lat: -34.610768,
+          long: -58.382452,
+          description: "Campo de Pastoreo Norte",
+          animals: [
+            {
+              id: "11:5e:e7:84:c4:f6", // ID único del animal
+              name: "Roberto Carlos", // Nombre del animal
+              description: "No es una vaca👀", // Descripción del animal
+            },
+            // Más objetos de animales con la misma estructura pueden seguir aquí
+          ],
         },
         {
           id: "pos-003",
-          lat: -38.0155, // Parque Camet
-          long: -57.515,
-          description: "Parque Camet",
-          animals: ["Bovino-05", "Bovino-06"],
+          lat: -34.608301,
+          long: -58.387305,
+          description: "Río Este",
+          animals: [
+            {
+              id: "11:5e:e7:84:c4:f6", // ID único del animal
+              name: "Roberto Carlos", // Nombre del animal
+              description: "No es una vaca👀", // Descripción del animal
+            },
+            // Más objetos de animales con la misma estructura pueden seguir aquí
+          ],
         },
         {
           id: "pos-004",
-          lat: -38.0085, // Estadio José María Minella
-          long: -57.5525,
-          description: "Estadio José María Minella",
-          animals: ["Bovino-07"],
-        },
-        {
-          id: "pos-005",
-          lat: -37.9867, // Reserva Natural Otamendi
-          long: -57.535,
-          description: "Reserva Natural Otamendi",
-          animals: ["Bovino-08", "Bovino-09"],
+          lat: -34.60405,
+          long: -58.3881,
+          description: "Descanso Sur",
+          animals: [
+            {
+              id: "11:5e:e7:84:c4:f6", // ID único del animal
+              name: "Roberto Carlos", // Nombre del animal
+              description: "No es una vaca👀", // Descripción del animal
+            },
+            {
+              id: "112:5e:e7:84:c4:f6", // ID único del animal
+              name: "Roberto2 Carlos", // Nombre del animal
+              description: "No es una vaca👀", // Descripción del animal
+            },
+            // Más objetos de animales con la misma estructura pueden seguir aquí
+          ],
         },
       ];
 
@@ -72,8 +100,30 @@ export default class AnimalLocationPage {
   }
 
   initMap() {
+    let map = null;
+    // Obtén todas las coordenadas de las ubicaciones
+    const coordinates = this.animalLocations.map((location) => [
+      location.lat,
+      location.long,
+    ]);
+
     // Inicializa el mapa en la ubicación de Mar del Plata
-    const map = L.map("map").setView([-38.00120839, -57.5812635], 12);
+    if (this.animalLocations.length > 0) {
+      // Usa la latitud y longitud del primer elemento en animalLocations
+      const initialLat = parseFloat(this.animalLocations[0].lat);
+      const initialLong = parseFloat(this.animalLocations[0].long);
+
+      // Inicializa el mapa en la ubicación inicial obtenida de animalLocations
+      map = L.map("map").setView([initialLat, initialLong], 12);
+      map.fitBounds(coordinates, {
+        padding: [30, 30], // Agrega un margen de 50 píxeles a cada lado del mapa
+      });
+    } else {
+      // Fallback si no hay datos en animalLocations
+      map = L.map("map").setView([-38.00120839, -57.5812635], 12);
+    }
+    //const map = L.map("map").setView([-38.00120839, -57.5812635], 12);
+
     // Añade el tile layer de OpenStreetMap
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution:
@@ -86,9 +136,26 @@ export default class AnimalLocationPage {
       marker.bindPopup(`
         <h3>${location.description}</h3>
         <p><strong>Checkpoint ID:</strong> ${location.id}</p>
-        <p><strong>Animales asociados:</strong> ${location.animals.join(
-          ", "
-        )}</p>
+        ${
+          location.animals && location.animals.length > 0
+            ? `
+              <p><strong>Animales asociados:</strong></p>
+              <ul>
+                ${location.animals
+                  .map(
+                    (animal) => `
+                      <li>
+                        <p><strong>ID:</strong> ${animal.id}</p>
+                        <p><strong>Nombre:</strong> ${animal.name}</p>
+                        <p><strong>Descripción:</strong> ${animal.description}</p>
+                      </li>
+                    `
+                  )
+                  .join("")}
+              </ul>
+            `
+            : "<p><strong>Animales asociados:</strong> No hay animales asociados</p>"
+        }
       `);
     });
   }
@@ -111,10 +178,23 @@ export default class AnimalLocationPage {
         <p><strong>Longitud:</strong> ${location.long}</p>
         ${
           location.animals && location.animals.length > 0
-            ? `<p><strong>Animales asociados:</strong> ${location.animals.join(
-                ", "
-              )}</p>`
-            : ""
+            ? `
+              <p><strong>Animales asociados:</strong></p>
+              <ul>
+                ${location.animals
+                  .map(
+                    (animal) => `
+                      <li>
+                        <p><strong>MAC:</strong> ${animal.id}</p>
+                        <p><strong>Nombre:</strong> ${animal.name}</p>
+                        <p><strong>Descripción:</strong> ${animal.description}</p>
+                      </li>
+                    `
+                  )
+                  .join("")}
+              </ul>
+            `
+            : "<p><strong>Animales asociados:</strong> No hay animales asociados</p>"
         }
       </div>
     `;

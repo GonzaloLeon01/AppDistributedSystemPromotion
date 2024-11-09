@@ -6,12 +6,15 @@ const animalController = require("./controllers/animalController");
 const checkpointController = require("./controllers/checkpointController");
 const userController = require("./controllers/userController");
 const mqttController = require("./controllers/mqttController");
-
+const fs = require('fs');
+const path = require('path');
 const PORT = 4000; // Asegúrate que este es el puerto correcto
 
 // Configuración de CORS
 const corsOptions = {
   origin: [
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
     "http://localhost:5500", // Agregado tu origen
     "http://127.0.0.1:5500", // Alternativa común
     "http://localhost:5173",
@@ -26,6 +29,7 @@ const corsOptions = {
 function handleCors(req, res, callback) {
   // Obtener el origen de la solicitud
   const origin = req.headers.origin;
+//res.setHeader('Access-Control-Allow-Origin', '*');
 
   // Verificar si el origen está en la lista de permitidos
   if (corsOptions.origin.includes(origin)) {
@@ -61,23 +65,17 @@ function handleCors(req, res, callback) {
 const server = http.createServer(async (req, res) => {
   handleCors(req, res, async () => {
     const parsedUrl = url.parse(req.url, true);
-    const path = parsedUrl.pathname;
+    const ruta = parsedUrl.pathname;
     const method = req.method;
-    console.log(`Datos: ${parsedUrl} ${path} ${method}`);
+    console.log(`Datos: ${parsedUrl} ${ruta} ${method}`);
     // Rutas públicas
 
-    if (method === "GET" && path === "/") {
-      res.writeHead(200, { "Content-Type": "text/plain" });
-      res.end("Backend!\n");
-      return;
-    }
-
-    if (path === "/API/login" && method === "POST") {
+    if (ruta === "/API/login" && method === "POST") {
       await userController.login(req, res);
       return;
     }
 
-    if (path === "/API/refresh" && method === "POST") {
+    if (ruta === "/API/refresh" && method === "POST") {
       await userController.refresh(req, res);
       return;
     }
@@ -88,38 +86,38 @@ const server = http.createServer(async (req, res) => {
 
     // Rutas protegidas
     switch (true) {
-      case path === "/API/animals" && method === "GET":
+      case ruta === "/API/animals" && method === "GET":
         await animalController.getAnimals(req, res);
         break;
-      case path === "/API/animals" && method === "POST":
+      case ruta === "/API/animals" && method === "POST":
         await animalController.createAnimal(req, res);
         break;
-      case path.match(/^\/API\/animals\/[^/]+$/) && method === "DELETE":
-        const animalId = path.split("/").pop();
+      case ruta.match(/^\/API\/animals\/[^/]+$/) && method === "DELETE":
+        const animalId = ruta.split("/").pop();
         await animalController.deleteAnimal(req, res, animalId);
         break;
-      case path.match(/^\/API\/animals\/[^/]+$/) && method === "PATCH":
-        const updateId = path.split("/").pop();
+      case ruta.match(/^\/API\/animals\/[^/]+$/) && method === "PATCH":
+        const updateId = ruta.split("/").pop();
         await animalController.updateAnimal(req, res, updateId);
         break;
-      case path === "/API/checkpoints" && method === "GET":
+      case ruta === "/API/checkpoints" && method === "GET":
         await checkpointController.getCheckpoints(req, res);
         break;
-      case path === "/API/checkpoints" && method === "POST":
+      case ruta === "/API/checkpoints" && method === "POST":
         await checkpointController.createCheckpoint(req, res);
         break;
-      case path.match(/^\/API\/checkpoints\/[^/]+$/) && method === "DELETE":
-        const checkpointId = path.split("/").pop();
+      case ruta.match(/^\/API\/checkpoints\/[^/]+$/) && method === "DELETE":
+        const checkpointId = ruta.split("/").pop();
         await checkpointController.deleteCheckpoint(req, res, checkpointId);
         break;
-      case path.match(/^\/API\/checkpoints\/[^/]+$/) && method === "PATCH":
-        const checkUpdateId = path.split("/").pop();
+      case ruta.match(/^\/API\/checkpoints\/[^/]+$/) && method === "PATCH":
+        const checkUpdateId = ruta.split("/").pop();
         await checkpointController.updateCheckpoint(req, res, checkUpdateId);
         break;
-      case path === "/API/animals/position" && method === "GET":
+      case ruta === "/API/animals/position" && method === "GET":
         await position(res);
         break;
-      case path === "/API/availableDevices" && method === "GET":
+      case ruta === "/API/availableDevices" && method === "GET":
         mqttController.getAllCheckpoints(res);
         break;
       default:

@@ -24,10 +24,9 @@ const route = (event) => {
   }
 };
 
-function loadLayout() {
-  const isAuth = !!AuthStateHelper.getAccessToken();
+function loadLayout(isAuth) {
   const headerContainer = document.getElementById("header-container");
-
+  console.log("im blue: "+headerContainer);
   if (!isAuth && headerContainer) {
     // Eliminar contenido del header cuando no hay autenticación
     headerContainer.innerHTML = "";
@@ -40,16 +39,16 @@ function loadLayout() {
 }
 //Funcion para manejar el enrutamiento y carga de la pagina
 function loadPage() {
-  console.log("El token es:" + AuthStateHelper.getAccessToken());
-  if (AuthStateHelper.isTokenExpired()) {
-    AuthStateHelper.deleteAuth();
-  }
+  console.log(`El token es:  ${ AuthStateHelper.getAccessToken()} ${AuthStateHelper.getAccessToken()}`);
+
   const isAuth = !!AuthStateHelper.getAccessToken();
+  loadLayout(isAuth);
   if (!isAuth) {
     history.pushState({}, "", "/login");
     return new LoginPage("layout-content");
   }
-  loadLayout();
+  console.log("va cargar");
+
   // Cargar el header en el contenedor principal
   //new Header("header-container");
   // Cargar la página según la ruta
@@ -81,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Cargar la primera página
   loadPage();
 });
-
+/*
 async function refreshToken() {
   try {
     const refreshToken = AuthStateHelper.getRefreshToken();
@@ -107,7 +106,7 @@ async function refreshToken() {
 export function setupTokenRefresh() {
   console.log("nunca entra");
   const refreshInterval = 60000; // Revisar cada minuto
-  setInterval(() => {
+
     const expiryTime = AuthStateHelper.getExpiryTime();
     console.log(expiryTime);
     if (expiryTime) {
@@ -116,12 +115,13 @@ export function setupTokenRefresh() {
 
       // Si el token está a punto de expirar en menos de 1 minuto, solicita un nuevo token
       if (timeRemaining < 60000) {
-        console.log("AAAAAAAAAAAAAAAAAAAA");
+        console.log("AAAAAAAAANAAAAAAAAAAASHEE");
         console.log("Lanzando request refresh para obtener nuevo accesToken");
         refreshToken();
       }
     } else {
       AuthStateHelper.deleteAuth();
     }
-  }, refreshInterval);
+
 }
+*/

@@ -112,7 +112,6 @@ export default class CheckpointManagementPage {
   async handleDeleteCheckpoint(id) {
     if (
       confirm("¿Estás seguro de que deseas eliminar este punto de control?")
-      
     ) {
       try {
         console.log(id);
@@ -136,7 +135,7 @@ export default class CheckpointManagementPage {
       <form id="checkpoint-form" class="checkpoint-form-container">
         <h3 class="checkpoint-form-title">Agregar Nuevo Punto de Control</h3>
         <div class="input-container">
-          <label for="uid" class="input-label">ID:</label>
+          <label for="uid" class="input-label">MAC:</label>
           <input class="input-field" type="text" id="uid" name="uid" required>
         </div>
         <div class="input-container">
@@ -145,7 +144,7 @@ export default class CheckpointManagementPage {
         </div>
         <div class="input-container">
           <label class="input-label" for="long">Longitud:</label>
-          <input type="number" id="long" name="long" required>
+          <input class="input-field" type="number" id="long" name="long" required>
         </div>
         <div class="input-container">
           <label for="description" class="input-label">Descripción:</label>
@@ -156,8 +155,8 @@ export default class CheckpointManagementPage {
       <div class="checkpoint-list">
         <h3 class="checkpoint-list-title"> Lista de Puntos de Control </h3>
         ${this.checkpoints
-        .map((checkpoint) => new CheckpointItem(checkpoint).render())
-        .join("")}
+          .map((checkpoint) => new CheckpointItem(checkpoint).render())
+          .join("")}
       </div>
     `;
     this.container.innerHTML = checkpointsHtml;

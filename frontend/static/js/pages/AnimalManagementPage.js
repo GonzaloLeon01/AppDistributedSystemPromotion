@@ -138,9 +138,9 @@ export default class AnimalManagementPage {
       <form id="animal-form" class="animal-form-container">
         <h3 class="animal-form-title">Añadir nuevo animal</h3>
         <div class="input-container">
-          <label for="deviceId" class="input-label">ID del dispositivo:</label>
+          <label for="deviceId" class="input-label">MAC del dispositivo:</label>
           <select id="deviceId" name="deviceId" class="input-field" required>
-            <option value="">Seleccione un ID</option>
+            <option value="">Seleccione la direccion MAC</option>
             ${this.availableDevices
               .map((device) => `<option value="${device}">${device}</option>`)
               .join("")}
