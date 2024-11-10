@@ -1,1 +1,28 @@
-{"data":[{"id":"8C:AA:B5:8B:F8:40","lat":40,"long":32,"description":"Chubut"}]}
+{
+    "data": [
+        {
+            "id": "8C:AA:B5:8B:F8:40",
+            "lat": -34.603722,
+            "long": -58.381592,
+            "description": "Establo Principal"
+        },
+        {
+            "id": "8C:AA:B5:8B:F8:41",
+            "lat": -34.610768,
+            "long": -58.382452,
+            "description": "Campo de Pastoreo Norte"
+        },
+        {
+            "id": "8C:AA:B5:8B:F8:42",
+            "lat": -34.608301,
+            "long": -58.387305,
+            "description": "Río Este"
+        },
+        {
+            "id": "8C:AA:B5:8B:F8:43",
+            "lat": -34.60405,
+            "long": -58.3881,
+            "description": "Descanso Sur"
+        }
+    ]
+}

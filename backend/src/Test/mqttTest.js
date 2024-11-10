@@ -5,12 +5,12 @@ const mqtt = require('mqtt');
 const brokerUrl = process.env.MQTT_BROKER_URL || 'mqtt://localhost:1883';
 const topic = "checkpoint";
 const options = {
-    host: process.env.MQTTHOST,
-    port: process.env.MQTTPORT,
-    clientId: 'Backend',
+    host: "localhost",
+    port: 1885,
     username: "api",
     password: "api",
-};
+  };
+  
 const fallbackOptions = {
     host: 'test.mosquitto.org',  // Servidor de prueba de Mosquitto
     port: 1883,

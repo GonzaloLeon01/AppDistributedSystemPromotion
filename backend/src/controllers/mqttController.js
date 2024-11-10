@@ -5,7 +5,13 @@ const options = {
   username: "api",
   password: "api",
 };
-const client = mqtt.connect(options);
+
+const fallbackOptions = {
+  host: 'test.mosquitto.org',  // Servidor de prueba de Mosquitto
+  port: 1883,
+};
+
+const client = mqtt.connect(fallbackOptions);
 
 // Estructura para almacenar los datos de los checkpoints y animales
 const animalTracker = new Map(); // Almacena la ultima ubicacion de cada animal

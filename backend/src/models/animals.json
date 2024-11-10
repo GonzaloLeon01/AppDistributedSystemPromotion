@@ -1,1 +1,19 @@
-{"data":[{"id":"11:5e:e7:84:c4:f6","name":"Roberto Carlos","description":"No es una vaca👀"},{"id":"02:b3:ec:c2:17:72","name":"Dukiii","description":"tome una pastillita locaaa"},{"id":"0f:ad:28:07:10:14","name":"Khea","description":"soy khea bro"}]}
+{
+    "data": [
+        {
+            "id": "11:5e:e7:84:c4:f6",
+            "name": "Roberto Carlos",
+            "description": "No es una vaca👀"
+        },
+        {
+            "id": "02:b3:ec:c2:17:72",
+            "name": "Dukiii",
+            "description": "tome una pastillita locaaa"
+        },
+        {
+            "id": "0f:ad:28:07:10:14",
+            "name": "Khea",
+            "description": "soy khea bro"
+        }
+    ]
+}
