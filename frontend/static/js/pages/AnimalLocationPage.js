@@ -10,11 +10,11 @@ export default class AnimalLocationPage {
 
   async loadAnimalLocations() {
     try {
-      //const data = await AnimalsAPIHelper.getAnimalsPosition();
-      //console.log(data);
+      const data = await AnimalsAPIHelper.getAnimalsPosition();
+      console.log(data);
 
       // Mock data para la respuesta de animals/position
-      const data = [
+      /* const data = [
         {
           id: "pos-001",
           lat: -34.603722,
@@ -76,7 +76,7 @@ export default class AnimalLocationPage {
             // Más objetos de animales con la misma estructura pueden seguir aquí
           ],
         },
-      ];
+      ]; */
 
       this.animalLocations = data;
     } catch (error) {
