@@ -1,7 +1,7 @@
 const jwt = require('jsonwebtoken');
 const { accessTokenSecret } = require('../config/auth.config');
 
-function verifyToken(req, res) {
+function verifyToken(req, res,next) {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
@@ -14,7 +14,7 @@ function verifyToken(req, res) {
     try {
         const decoded = jwt.verify(token, accessTokenSecret);
         req.user = decoded;
-        return true;
+        return next();
     } catch (err) {
         res.writeHead(403, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ error: 'Invalid or expired token' }));

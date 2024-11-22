@@ -2,7 +2,6 @@ const animalRepository = require('../repositories/animalRepository');
 
 class AnimalController {
     constructor() {
-        // Bind de los métodos al contexto de la clase
         this.getAnimals = this.getAnimals.bind(this);
         this.createAnimal = this.createAnimal.bind(this);
         this.deleteAnimal = this.deleteAnimal.bind(this);
@@ -23,7 +22,8 @@ class AnimalController {
 
     async createAnimal(req, res) {
         try {
-            const newAnimal = req.body;
+            let newAnimal = this.parseRequestBody(req.body);
+            
             if (!this.validateAnimal(newAnimal)) {
                 return res.status(400).json({ error: 'Ausencia de datos para llevar a cabo una request' });
             }
@@ -51,7 +51,10 @@ class AnimalController {
 
     async updateAnimal(req, res) {
         try {
-            const updatedAnimal = req.body;
+            let updatedAnimal = this.parseRequestBody(req.body);
+            console.log('Body recibido:', req.body);
+            console.log('Animal parseado:', updatedAnimal);
+
             if (!this.validateAnimal(updatedAnimal)) {
                 return res.status(400).json({ error: 'Ausencia de datos para llevar a cabo una request' });
             }
@@ -68,8 +71,39 @@ class AnimalController {
         }
     }
 
+    parseRequestBody(body) {
+        try {
+            // Si el body es un objeto con una única clave que parece JSON
+            if (typeof body === 'object' && Object.keys(body).length === 1) {
+                const key = Object.keys(body)[0];
+                if (key.startsWith('{')) {
+                    return JSON.parse(key);
+                }
+            }
+            // Si el body ya es un objeto válido
+            if (body && typeof body === 'object' && !Array.isArray(body)) {
+                return body;
+            }
+            // Si el body es una cadena JSON
+            if (typeof body === 'string') {
+                return JSON.parse(body);
+            }
+            
+            return body;
+        } catch (error) {
+            console.error('Error parsing body:', error);
+            return body;
+        }
+    }
+
     validateAnimal(animal) {
-        return animal.id && animal.name && animal.description;
+        try {
+            console.log('Validando animal:', animal);
+            return animal && animal.id && animal.name && animal.description;
+        } catch (error) {
+            console.error('Error validando animal:', error);
+            return false;
+        }
     }
 
     async getAnimalsData() {
@@ -82,5 +116,4 @@ class AnimalController {
     }
 }
 
-// Exportar la clase
 module.exports = AnimalController;

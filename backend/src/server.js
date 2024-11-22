@@ -4,7 +4,7 @@ const { verifyToken } = require('./middleware/authMiddleware');
 const AnimalController = require('./controllersExpress/animalController');
 const CheckpointController = require('./controllersExpress/checkpointController');
 const UserController = require('./controllersExpress/userController');
-const MqttController = require('./controllersExpress/mqttController');
+const mqttController = require('./controllersExpress/mqttController');
 require('dotenv').config();
 
 const app = express();
@@ -27,11 +27,7 @@ const corsOptions = {
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 };
-
-app.use(cors(corsOptions));
-app.use(express.json());
-
-// Función getPosition como middleware
+// Funcion getPosition como middleware
 const getPosition = async (req, res) => {
   try {
     let temporalArray = [];
@@ -68,15 +64,32 @@ const getPosition = async (req, res) => {
 };
 
 
+// Configuración de middlewares de parseo ANTES de cualquier otro middleware
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+app.use(cors(corsOptions));
+
+// Middleware de autenticación
+const authMiddleware = (req, res, next) => {
+  // Verificar la ruta antes de procesar el token
+  if (req.path === '/login' || req.path === '/refresh') {
+    return next();
+  }
+  
+  // Para debugging - ver el contenido del body
+  console.log('Request Body:', req.body);
+  console.log('Content-Type:', req.get('Content-Type'));
+  
+  return verifyToken(req, res, next);
+};
+
+
 // Rutas públicas
 app.post('/API/login', (req, res) => userController.login(req, res));
 app.post('/API/refresh', (req, res) => userController.refresh(req, res));
 
-
-app.use('/API', (req, res, next) => {
-  if (req.path === '/login' || req.path === '/refresh') return next();
-  verifyToken(req, res, next);
-});
+// Aplicar el middleware de autenticación después de las rutas públicas
+app.use('/API', authMiddleware);
 
 // Rutas de animales
 app.get('/API/animals', (req, res) => animalController.getAnimals(req, res));
@@ -94,7 +107,7 @@ app.patch('/API/checkpoints/:id', (req, res) => checkpointController.updateCheck
 app.get('/API/animals/position', getPosition);
 app.get('/API/availableDevices', (req, res) => mqttController.getAllCheckpoints(res));
 
-
+// Manejo de errores
 app.use((err, req, res, next) => {
   console.error('Error:', err);
   res.status(500).json({ error: 'Error interno del servidor' });
